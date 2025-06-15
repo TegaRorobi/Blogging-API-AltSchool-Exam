@@ -11,6 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+const log = (level, message) => console.log(`[${new Date().toISOString()}] [SERVER] ${level}: ${message}`);
+
 connectDB();
 
 app.use(cors({
@@ -30,5 +32,5 @@ app.post('/api/auth/signup', auth_controller.signup);
 app.use(errorHandler); // global error handler
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}.`)
+    log('INFO', `Server running on port ${PORT}.`);
 });
