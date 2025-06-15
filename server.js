@@ -1,9 +1,10 @@
 
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
+const auth_controller = require('./controllers/auth_controller');
 const connectDB = require('./mongodb_connect');
 
+const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
@@ -22,6 +23,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.status(200).json({status: 200, message: 'API running...'})
 });
+
+app.post('/api/auth/signup', auth_controller.signup);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}.`)
