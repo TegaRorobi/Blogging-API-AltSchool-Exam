@@ -52,7 +52,7 @@ const BlogSchema = new Schema({
 // A lookup says it's about 238, but I'll use this as my baseline
 const WORDS_PER_MINUTE = 200;
 
-const calculateApproxReadingMinutes = (text) {
+const calculateApproxReadingMinutes = (text) => {
     if (!text) return 0;
 
     let words = text.trim().split(/\s+/).filter(word => word.length > 0);
