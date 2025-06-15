@@ -12,12 +12,16 @@ const signup = async (req, res, next) => {
         const {first_name, last_name, email, password} = req.body;
 
         if (!first_name || !last_name || !email || !password) {
-            res.status(400).json({error: 'Please provide a first_name, last_name, email and password.'});
+            let error = new Error('Please provide a first_name, last_name, email and password.');
+            error.status_code = 400;
+            return next(error); // pass it on, and it'll be handled by the error handler
         };
 
         let user = await User.findOne({email});
         if (user) {
-            res.status(400).json({error: `The email ${email} has already been registered. Kindly login.`});
+            let error = new Error(`The email ${email} has already been registered. Kindly login.`);
+            error.status_code = 400;
+            return next(error); // same here
         };
 
         const hashing_salt = await bcrypt.genSalt(10);
@@ -39,7 +43,7 @@ const signup = async (req, res, next) => {
         });
 
     } catch (err) {
-        res.status(400).json({error: err.message});
+        next(err); // ditto
     }
 };
 

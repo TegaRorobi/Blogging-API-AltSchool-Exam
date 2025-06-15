@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const auth_controller = require('./controllers/auth_controller');
 const connectDB = require('./mongodb_connect');
+const errorHandler = require('./middleware/error_handler');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -25,6 +26,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/auth/signup', auth_controller.signup);
+
+app.use(errorHandler); // global error handler
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}.`)
