@@ -50,4 +50,52 @@ const signup = async (req, res, next) => {
     }
 };
 
-module.exports = {signup};
+
+const login = async (req, res, next) => {
+    try {
+        const {email, password} = req.body;
+
+        const user = await User.findOne({email});
+
+        if (!user) {
+            log('ERROR', `User account with email ${email} not found.`);
+            let error = new Error(`User account with email ${email} does not exist. Proceed to login.`);
+            error.status_code = 404;
+            next(error);
+        };
+
+        password_match = await bcrypt.compare(password, user.password_hash);
+        if (!password_match) {
+            log('ERROR', `User account with email ${email} not found.`);
+            let error = new Error(`User account with email ${email} does not exist. Proceed to login.`);
+            error.status_code = 400;
+            next(error);
+        };
+
+        payload = {
+            id: user._id,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+        }
+
+        const token = jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            {expiresIn: '1h'} // as required in the project description
+        )
+        log('INFO', `User account with email ${user.email} logged in successfully!`);
+
+        res.status(200).json({
+            message: 'Login successful!',
+            token,
+            user: payload
+        })
+
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = {signup, login};

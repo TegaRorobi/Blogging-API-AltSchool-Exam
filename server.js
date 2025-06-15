@@ -28,6 +28,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/auth/signup', auth_controller.signup);
+app.post('/api/auth/login', auth_controller.login);
 
 app.use(errorHandler); // global error handler
 
