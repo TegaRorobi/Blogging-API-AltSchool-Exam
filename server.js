@@ -2,6 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const auth_controller = require('./controllers/auth_controller');
+const blog_controller = require('./controllers/blog_controller');
+const authenticateToken = require('./middleware/auth_middleware');
 const connectDB = require('./mongodb_connect');
 const errorHandler = require('./middleware/error_handler');
 
@@ -24,11 +26,13 @@ app.use(cors({
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.status(200).json({status: 200, message: 'API running...'})
+    res.status(200).json({status: 200, message: 'API running...', help: 'View API Documentation at apidog.com/...'})
 });
 
 app.post('/api/auth/signup', auth_controller.signup);
 app.post('/api/auth/login', auth_controller.login);
+
+app.post('/api/blog/create', authenticateToken, blog_controller.createBlog);
 
 app.use(errorHandler); // global error handler
 

@@ -92,7 +92,6 @@ const login = async (req, res, next) => {
             user: payload
         })
 
-
     } catch (err) {
         next(err);
     }
