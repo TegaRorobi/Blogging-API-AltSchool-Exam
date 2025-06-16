@@ -59,15 +59,15 @@ const login = async (req, res, next) => {
 
         if (!user) {
             log('ERROR', `User account with email ${email} not found.`);
-            let error = new Error(`User account with email ${email} does not exist. Proceed to login.`);
+            let error = new Error(`User account with email ${email} does not exist. Proceed to signup.`);
             error.status_code = 404;
             next(error);
         };
 
         password_match = await bcrypt.compare(password, user.password_hash);
         if (!password_match) {
-            log('ERROR', `User account with email ${email} not found.`);
-            let error = new Error(`User account with email ${email} does not exist. Proceed to login.`);
+            log('ERROR', `Failed login for user - ${email}. Incorrect password.`);
+            let error = new Error(`Invalid login credentials. Email and/or password is incorrect.`);
             error.status_code = 400;
             next(error);
         };
