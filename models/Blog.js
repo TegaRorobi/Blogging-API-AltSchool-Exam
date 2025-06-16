@@ -60,8 +60,8 @@ const calculateApproxReadingMinutes = (text) => {
     return readingMinutes; // todo: What if the reading minutes > 60 or < 1?
 }
 
-BlogSchema.pre('save', (next) => {
-    // calculate the approximate reading minutes for this new instance
+BlogSchema.pre('save', function (next) {
+    // calculate the approximate reading minutes for instance
     this.reading_time = calculateApproxReadingMinutes(this.body);
 
     next();
