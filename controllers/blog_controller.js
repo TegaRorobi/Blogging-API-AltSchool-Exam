@@ -40,15 +40,43 @@ const createBlog = async (req, res, next) => {
         res.status(201).json({
             status: 'created',
             message: 'Blog successfully created.',
-            blog: {
-                id: blog._id,
-                title: blog.title,
-                description: blog.description,
-                body: blog.body,
-                tags: blog.tags,
-                state: blog.state,
-                author: blog.author}
+            blog
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const retrieveBlog = async (req, res, next) => {
+    try {
+        const {blog_id} = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(blog_id)) { // to check that the blog ID passed as a request parameter is valid
+            log('ERROR', `User ${req.user? req.user.email : 'undefined'}: Blog update failed. Invalid Blog ID value (${blog_id})`);
+            let error = new Error(`Blog update failed. Invalid Blog ID value "${blog_id}"`);
+            error.status_coode = 400;
+            next(error);
+        };
+
+        const blog = await Blog.findOneAndUpdate(
+            {_id:blog_id, state:'published'}, // should be only able to retrieve published blogs
+            {$inc: {read_count: 1}}, // every time the blog is retrieved, I'll assume it's read and update the read coun
+            {new: true}
+        ).populate('author', 'first_name last_name email');
+        if (!blog) {
+            log('ERROR', `User ${req.user? req.user.email : 'undefined'}: Blog retrieve failed. Blog not found (${blog_id})`);
+            let error = new Error(`Blog retrieve failed. Published blog with ID \'${blog_id}\' not found.`);
+            error.status_coode = 400;
+            next(error);
+        };
+
+        log('INFO', `Blog with ID '${blog_id}' retrieved successfully!`)
+        res.status(200).json({
+            status: 'retrieved',
+            message: 'Blog retrieved successfully!',
+            blog
+        });
+
     } catch (err) {
         next(err);
     }
@@ -84,6 +112,7 @@ const updateBlog = async (req, res, next) => {
             error.status_coode = 400;
             next(error);
         };
+        log('INFO', `Blog with ID '${blog_id}' retrieved successfully. Updates incoming.`);
 
         valid_states = ['draft', 'published'];
         request_updates.forEach((update) => {
@@ -101,25 +130,21 @@ const updateBlog = async (req, res, next) => {
         });
 
         await blog.save();
+        log('INFO', `Blog with ID '${blog_id}' updated successfully!`);
 
         res.status(200).json({
             status: 'updated',
             message: 'Blog successfully updated.',
-            blog: {
-                id: blog._id,
-                title: blog.title,
-                description: blog.description,
-                body: blog.body,
-                tags: blog.tags,
-                state: blog.state,
-                author: blog.author}
+            blog
         });
     } catch (err) {
         next(err);
     }
 
 };
+
 module.exports = {
     createBlog,
+    retrieveBlog,
     updateBlog
 };

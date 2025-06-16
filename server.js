@@ -33,6 +33,7 @@ app.post('/api/auth/signup', auth_controller.signup);
 app.post('/api/auth/login', auth_controller.login);
 
 app.post('/api/blog/create', authenticateToken, blog_controller.createBlog);
+app.get('/api/blog/retrieve/:blog_id', blog_controller.retrieveBlog);
 app.post('/api/blog/update/:blog_id', authenticateToken, blog_controller.updateBlog);
 
 app.use(errorHandler); // global error handler
