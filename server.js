@@ -34,7 +34,8 @@ app.post('/api/auth/login', auth_controller.login);
 
 app.post('/api/blog/create', authenticateToken, blog_controller.createBlog);
 app.get('/api/blog/retrieve/:blog_id', blog_controller.retrieveBlog);
-app.post('/api/blog/update/:blog_id', authenticateToken, blog_controller.updateBlog);
+app.put('/api/blog/update/:blog_id', authenticateToken, blog_controller.updateBlog);
+app.delete('/api/blog/delete/:blog_id', authenticateToken, blog_controller.deleteBlog);
 
 app.use(errorHandler); // global error handler
 

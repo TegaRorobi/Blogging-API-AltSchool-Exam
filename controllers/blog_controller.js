@@ -54,7 +54,7 @@ const retrieveBlog = async (req, res, next) => {
         if (!mongoose.Types.ObjectId.isValid(blog_id)) { // to check that the blog ID passed as a request parameter is valid
             log('ERROR', `User ${req.user? req.user.email : 'undefined'}: Blog update failed. Invalid Blog ID value (${blog_id})`);
             let error = new Error(`Blog update failed. Invalid Blog ID value "${blog_id}"`);
-            error.status_coode = 400;
+            error.status_code = 400;
             next(error);
         };
 
@@ -66,7 +66,7 @@ const retrieveBlog = async (req, res, next) => {
         if (!blog) {
             log('ERROR', `User ${req.user? req.user.email : 'undefined'}: Blog retrieve failed. Blog not found (${blog_id})`);
             let error = new Error(`Blog retrieve failed. Published blog with ID \'${blog_id}\' not found.`);
-            error.status_coode = 400;
+            error.status_code = 400;
             next(error);
         };
 
@@ -90,7 +90,7 @@ const updateBlog = async (req, res, next) => {
         if (!mongoose.Types.ObjectId.isValid(blog_id)) { // to check that the blog ID passed as a request parameter is valid
             log('ERROR', `User ${req.user.email}: Blog update failed. Invalid Blog ID value (${blog_id})`);
             let error = new Error(`Blog update failed. Invalid Blog ID value "${blog_id}"`);
-            error.status_coode = 400;
+            error.status_code = 400;
             next(error);
         };
 
@@ -102,14 +102,14 @@ const updateBlog = async (req, res, next) => {
         if (!request_updates_are_valid) {
             log('ERROR', `User ${req.user.email}: Blog update failed. Invalid update fields found in request: \n${req.body}`);
             let error = new Error(`Blog update failed. Invalid update fields. Valid fields are: ${valid_updates}`);
-            error.status_coode = 400;
+            error.status_code = 400;
             next(error);
         };
 
         const blog = await Blog.findOne({_id:blog_id, author:author_id});
         if (!blog) { log('ERROR', `User ${req.user.email}: Blog update failed. Blog not found (${blog_id})`);
             let error = new Error(`Blog update failed. Blog of yours with ID \'${blog_id}\' not found.`);
-            error.status_coode = 400;
+            error.status_code = 400;
             next(error);
         };
         log('INFO', `Blog with ID '${blog_id}' retrieved successfully. Updates incoming.`);
@@ -120,7 +120,7 @@ const updateBlog = async (req, res, next) => {
                 if (!valid_states.includes(req.body['state'])) {
                     log('ERROR', `User ${req.user.email}: Blog update failed. Invalid state \'${req.body['state']}\'`);
                     let error = new Error(`Blog update failed. Invalid state: \'${req.body['state']}\' Valid states are: ${valid_states}`);
-                    error.status_coode = 400;
+                    error.status_code = 400;
                     next(error);
                 }
                 blog.state = req.body['state'];
@@ -143,8 +143,35 @@ const updateBlog = async (req, res, next) => {
 
 };
 
+const deleteBlog = async (req, res, next) => {
+    const {blog_id} = req.params;
+    const author_id = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(blog_id)) { // to check that the blog ID passed as a request parameter is valid
+        log('ERROR', `User ${req.user.email}: Blog delete failed. Invalid Blog ID value (${blog_id})`);
+        let error = new Error(`Blog delete failed. Invalid Blog ID value '${blog_id}'`);
+        error.status_code = 400;
+        next(error);
+    };
+
+    const blog = await Blog.findOneAndDelete({_id:blog_id, author:author_id});
+    if (!blog) {
+        log('ERROR', `User ${req.user.email}: Blog delete failed. Blog with ID '${blog_id}' not found.`);
+        let error = new Error(`Blog delete failed. Blog with ID '${blog_id}' not found.`);
+        error.status_code = 404;
+        next(error);
+    }
+    log('INFO', `Blog with ID '${blog_id}' deleted successfully.`)
+
+    res.status(204).json({
+        status: 'deleted',
+        message: `Blog deleted successfully.`
+    })
+};
+
 module.exports = {
     createBlog,
     retrieveBlog,
-    updateBlog
+    updateBlog,
+    deleteBlog
 };
