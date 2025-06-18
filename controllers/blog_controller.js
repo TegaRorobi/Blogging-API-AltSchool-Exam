@@ -239,11 +239,37 @@ const retrievePublishedBlogs = async (req, res, next) => {
 
 };
 
+const retrieveOwnedBlogs = async (req, res, next) => {
+    try {
+        const author_id = req.user.id;
+
+        const sort_rule = {createdAt: -1};
+        sortby = req.query.sort;
+        orderby = req.query.sort;
+        valid_sort_fields = ['read_count', 'reading_time', 'createdAt', 'updatedAt']
+        if (sortby && valid_sort_fields.includes(sortby)) {
+            sort_rule = {};
+            sort_rule[sortby] = orderby == 'asc' ? 1 : - 1;
+        }
+        const ownedBlogs = await Blog.find({author:author_id}).sort(sort_rule);
+        log('INFO', `Blogs for user '${req.user.email}' retrieved successfully. Returned ${ownedBlogs.length} blogs.`)
+
+        res.status(200).json({
+            status: 'retrieved',
+            message: `Blogs for user '${req.user.email}' successfully.`,
+            blogs: ownedBlogs
+        })
+    } catch (err) {
+        next(err);
+    }
+};
+
 
 module.exports = {
     createBlog,
     retrieveBlog,
     updateBlog,
     deleteBlog,
-    retrievePublishedBlogs
+    retrievePublishedBlogs,
+    retrieveOwnedBlogs
 };
