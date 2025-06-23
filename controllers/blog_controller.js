@@ -175,8 +175,8 @@ const deleteBlog = async (req, res, next) => {
 
 const retrievePublishedBlogs = async (req, res, next) => {
     try {
-        const page = req.query.page || 1;
-        const limit_per_page = req.query.limit || 20;
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit_per_page = parseInt(req.query.limit, 10) || 20;
         const skip = (page-1) * limit_per_page; // the number of documents to skip to get the correct results
 
         const query = {state: 'published'}; // base query for this endpoint
