@@ -218,7 +218,7 @@ const retrievePublishedBlogs = async (req, res, next) => {
         const valid_sort_fields = ['read_count', 'reading_time', 'createdAt'];
         if (valid_sort_fields.includes(sortby)) {
             sort_rule = {};
-            sort_rule[sortby] = orderby == asc ? 1 : -1; // if orderby is anything other than 'asc', sort in descending order
+            sort_rule[sortby] = orderby == 'asc' ? 1 : -1; // if orderby is anything other than 'asc', sort in descending order
         }
 
         const blogs = await Blog.find(query).skip(skip).sort(sort_rule).limit().populate('author', 'first_name last_name email');
