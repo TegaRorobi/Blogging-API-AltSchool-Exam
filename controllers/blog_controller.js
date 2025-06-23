@@ -234,7 +234,7 @@ const retrievePublishedBlogs = async (req, res, next) => {
 
         res.status(200).json({
             status: 'retrieved',
-            message: 'Published blogs retrieved successfully!',
+            message: `${blog_count} Published blogs retrieved successfully!`,
             blogs: blogObjects,
             blog_count,
             page,
