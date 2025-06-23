@@ -185,24 +185,27 @@ const retrievePublishedBlogs = async (req, res, next) => {
 
         if (search_query_str) {
             search_words = search_query_str.split(' ').filter((word) => word.length > 0);
+
             if (search_words.length > 0) {
-                const search_queries_for_words = search_words.map(word => ({ // for every search term or word, I'm creating a $or array to search the title, description and tags for that word
-                    $or: [
+                search_words.forEach(word => {
+                    search_queries.push(
                         {title: {$regex: word, $options: 'i'}}, // 'i' to make the search case insensitive
                         {description: {$regex: word, $options: 'i'}},
+                        {body: {$regex: word, $options: 'i'}},
                         {tags: {$regex: word, $options: 'i'}}
-                    ]
-                }));
-                search_queries.push(search_queries_for_words);
+                    )
+                })
             };
 
-            const matched_authors = await User.find({ // check if searching for authors by the search query brings up results
-                $or: [
-                    {first_name: {$regex: search_query_str, $options: 'i'}},
-                    {last_name: {$regex: search_query_str, $options: 'i'}},
-                    {email: {$regex: search_query_str, $options: 'i'}}
-                ]
-            }).select('_id');
+            author_queries = []; // will contain the $or array to search for matching authors
+            search_words.forEach(word => {
+                author_queries.push(
+                    {first_name: {$regex: word, $options: 'i'}},
+                    {last_name: {$regex: word, $options: 'i'}},
+                    {email: {$regex: word, $options: 'i'}}
+                )
+            });
+            const matched_authors = await User.find({$or: author_queries}).select('_id'); // # used here
 
             if (matched_authors.length > 0) {
                 const matched_author_ids = matched_authors.map(author => author._id);
@@ -210,7 +213,8 @@ const retrievePublishedBlogs = async (req, res, next) => {
             }
         };
 
-        if (search_queries.length > 0) query.$and = search_queries;
+        if (search_queries.length > 0) query.$or = search_queries;
+        // 'query' now contains the original base query ('published' state) AND anything that matches in $or
 
         let sort_rule = {'createdAt': -1}; // default is to sort by cretion time, descending order
         const sortby = req.query.sortby;
@@ -221,17 +225,20 @@ const retrievePublishedBlogs = async (req, res, next) => {
             sort_rule[sortby] = orderby == 'asc' ? 1 : -1; // if orderby is anything other than 'asc', sort in descending order
         }
 
+        log('DEBUG', `Sorting rule object: ${JSON.stringify(sort_rule, null, 2)}`);
+        log('DEBUG', `Final MongoDB query object: ${JSON.stringify(query, null, 2)}`);
         const blogs = await Blog.find(query).skip(skip).sort(sort_rule).limit().populate('author', 'first_name last_name email');
         const blogObjects = blogs.map(blog => blog.toObject()); // I got an error, as they didn't serialise properly so I'm explicitly converting the blog to JS Objects
-        const total_blogs = await Blog.countDocuments();
-        log('INFO', `Blogs succesfully retrieved for user ${req.user? req.user.email : 'undefined'} with skip (${skip}), sort (${sort_rule}), query (${query})`);
+        const blog_count =  blogObjects.length;
+        log('INFO', `${blog_count} blog(s) succesfully retrieved for user (${req.user? req.user.email : 'undefined'}) with skip (${skip})`);
 
         res.status(200).json({
             status: 'retrieved',
             message: 'Published blogs retrieved successfully!',
             blogs: blogObjects,
-            total_blogs,
-            total_pages: Math.ceil(total_blogs/limit_per_page)
+            blog_count,
+            page,
+            total_pages: Math.ceil(blog_count/limit_per_page)
         });
     } catch (err) {
         next(err);
